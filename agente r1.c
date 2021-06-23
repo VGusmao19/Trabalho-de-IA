@@ -1,11 +1,11 @@
 /******************************************************************************
 
-O objetivo do agente A È capturar todos os . e os * da tela no menor tempo possivel.
-Os * s„o mais atrativos para o agente que os .
-1 - Escreva a funÁ„o do agente seguindo o modelo reativo simples.
-2 - Escreva a funÁ„o do agente seguindo o modelo reativo baseado em modelos.
-3 - Escreva a funÁ„o do agente seguindo o modelo reativo baseado em objetivos.
-4 - Escreva a funÁ„o do agente seguindo o modelo reativo baseado na utilidade.
+O objetivo do agente A √© capturar todos os . e os * da tela no menor tempo possivel.
+Os * s√£o mais atrativos para o agente que os .
+1 - Escreva a fun√ß√£o do agente seguindo o modelo reativo simples.
+2 - Escreva a fun√ß√£o do agente seguindo o modelo reativo baseado em modelos.
+3 - Escreva a fun√ß√£o do agente seguindo o modelo reativo baseado em objetivos.
+4 - Escreva a fun√ß√£o do agente seguindo o modelo reativo baseado na utilidade.
 
 Depois compare o tempo que cada abordagem demorou para atingir o objetivo.
 
@@ -34,6 +34,7 @@ O agente tem como acoes movimentar-se para esquerda (0), direita (1), cima (2), 
 #define AGENT 6
 #define LIXO 7
 #define INCINERADOR 8
+#define AGENT2 9
 
 int posAgenteX = 1;
 int posAgenteY = 1;
@@ -55,6 +56,7 @@ void construirAmbiente(){
 			else ambiente[i][j] = rand()%3;
 		}
 	}
+	/*criando as lixeiras*/
 	for(int i = 0; i<SIZE; i++){
         for(int j = 0; j<SIZE; j++){
             if(i == 12 && j == 1){ambiente[i][j] = LIXO;}
@@ -77,6 +79,7 @@ void mostrarAmbiente(){
             else if (ambiente[i][j] == AGENT) printf("A");
             else if (ambiente[i][j] == LIXO) printf("X");
             else if (ambiente[i][j] == INCINERADOR) printf("Y");
+            else if (ambiente[i][j] == AGENT2) printf("B");
         }
         printf("\n");
     }
