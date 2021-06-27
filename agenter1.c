@@ -39,6 +39,7 @@ O agente tem como acoes movimentar-se para esquerda (0), direita (1), cima (2), 
 int posAgenteX = 1;
 int posAgenteY = 1;
 int ambiente[SIZE][SIZE];
+bool flagLixo = false;
 
 ////////////////----------- GERENCIAMENTO DO AMBIENTE -------------/////////////////
 void delay(int tempo){
@@ -98,6 +99,7 @@ bool verificarSucesso(){
 ////////////////----------- AGENTE REATIVO SIMPLES -------------/////////////////
 void atuadores(int acao){
     ambiente[posAgenteX][posAgenteY] = BLANK;
+    flagLixo = true;
     if (acao == LEFT && ambiente[posAgenteX][posAgenteY-1] < CORNER) posAgenteY -= 1;
     else if (acao == RIGHT && ambiente[posAgenteX][posAgenteY+1] < CORNER) posAgenteY += 1;
     else if (acao == UP && ambiente[posAgenteX-1][posAgenteY] < CORNER) posAgenteX -= 1;
@@ -122,6 +124,17 @@ int funcaoAgenteR1(int left, int right, int up, int down){
 	return rand()%4;
 }
 
+int voltarLixeira(int posAgenteX, int posAgenteY){
+	for(int i = posAgenteY; i > 1; i--)
+		return LEFT;
+
+	if(posAgenteX >= 12)
+		for(int i = posAgenteX; i > 12; i--) // esses laços aqui
+			return UP;
+	else
+		for(int i = posAgenteX; i < 12; i++)
+			return DOWN;
+}
 ////////////////----------- FUNCAO PRINCIPAL -------------/////////////////
 int main()
 {
@@ -129,13 +142,21 @@ int main()
 	double elapsed;
 	construirAmbiente();
 	mostrarAmbiente();
+	int acao;
 
     	clock_gettime(CLOCK_MONOTONIC, &start);
 	while(!verificarSucesso()){
-        	system("cls");
-        	int acao = funcaoAgenteR1(sensores(LEFT), sensores(RIGHT), sensores(UP), sensores(DOWN));
+        	system("clear");
+        	if(flagLixo == false){
+        		acao = funcaoAgenteR1(sensores(LEFT), sensores(RIGHT), sensores(UP), sensores(DOWN));
+        	}else {
+        		acao = voltarLixeira(posAgenteX, posAgenteY);
+        	}
         	atuadores(acao);
-        mostrarAmbiente();
+        	mostrarAmbiente();
+        	if(posAgenteX == 12 && posAgenteY == 1){
+        		flagLixo = true;
+        	}
     	}
 	clock_gettime(CLOCK_MONOTONIC, &finish);
 	
