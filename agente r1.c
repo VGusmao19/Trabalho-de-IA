@@ -34,6 +34,8 @@ O agente tem como acoes movimentar-se para esquerda (0), direita (1), cima (2), 
 int posAgenteX = 1;
 int posAgenteY = 1;
 int ambiente[SIZE][SIZE];
+int mochila = 0;/*false*/
+int count = 0;
 
 int posAgenteBX = 1;
 int posAgenteBY = 18;
@@ -65,9 +67,8 @@ void construirAmbiente(){
     /*ambiente[1][18] = 9;*/
 }
 
-void mostrarAmbiente(){
+void mostrarAmbiente(int count, int mochila){
 	system("cls");
-	int count = 0;
     for(int i = 0; i<SIZE; i++){
         for(int j = 0; j<SIZE; j++){
             if (ambiente[i][j] == BLANK) printf(" ");
@@ -83,7 +84,7 @@ void mostrarAmbiente(){
         }
         printf("\n");
     }
-	printf("Faltam %d objetos.\n", count);
+	printf("Faltam %d objetos. mochila: %d\n", count, mochila);
 }
 
 bool verificarSucesso(){
@@ -98,27 +99,27 @@ bool verificarSucesso(){
 ////////////////----------- AGENTE REATIVO SIMPLES -------------/////////////////
 void atuadores(int acao){
     ambiente[posAgenteX][posAgenteY] = BLANK;
-    if (acao == LEFT && ambiente[posAgenteX][posAgenteY-1] < CORNER) posAgenteY -= 1;
-    else if (acao == RIGHT && ambiente[posAgenteX][posAgenteY+1] < CORNER) posAgenteY += 1;
-    else if (acao == UP && ambiente[posAgenteX-1][posAgenteY] < CORNER) posAgenteX -= 1;
-    else if (acao == DOWN && ambiente[posAgenteX+1][posAgenteY] < CORNER) posAgenteX += 1;
+        if (acao == LEFT && ambiente[posAgenteX][posAgenteY-1] < CORNER) posAgenteY -= 1;
+        else if (acao == RIGHT && ambiente[posAgenteX][posAgenteY+1] < CORNER) posAgenteY += 1;
+        else if (acao == UP && ambiente[posAgenteX-1][posAgenteY] < CORNER) posAgenteX -= 1;
+        else if (acao == DOWN && ambiente[posAgenteX+1][posAgenteY] < CORNER) posAgenteX += 1;
     ambiente[posAgenteX][posAgenteY] = AGENT;
 }
 
 int sensores(int lado){
-    if (lado == LEFT) return ambiente[posAgenteX][posAgenteY-1];
-    if (lado == RIGHT) return ambiente[posAgenteX][posAgenteY+1];
-    if (lado == UP) return ambiente[posAgenteX-1][posAgenteY];
-    if (lado == DOWN) return ambiente[posAgenteX+1][posAgenteY];
+        if (lado == LEFT) return ambiente[posAgenteX][posAgenteY-1];
+        if (lado == RIGHT)return ambiente[posAgenteX][posAgenteY+1];
+        if (lado == UP)return ambiente[posAgenteX-1][posAgenteY];
+        if (lado == DOWN)return ambiente[posAgenteX+1][posAgenteY];
     return 0;
 }
 
 int funcaoAgenteR1(int left, int right, int up, int down){
-	delay(300);
-	if(up == STAR || up == DOT) return UP;
-	if(right == STAR || right == DOT) return RIGHT;
-	if(left == STAR || left == DOT) return LEFT;
-	if(down == STAR || down == DOT) return DOWN;
+	//delay(100);
+	if(up == STAR || up == DOT){return UP;}
+	if(right == STAR || right == DOT) {return RIGHT;}
+	if(left == STAR || left == DOT) {return LEFT;}
+	if(down == STAR || down == DOT) {return DOWN;}
 	return rand()%4;
 }
 
@@ -128,7 +129,7 @@ void atuadoresB(){
     if(ambiente[posAgenteBX+1][posAgenteBY] != 7 && ambiente[posAgenteBX+1][posAgenteBY] != 8){
         int guardaObjeto = ambiente[posAgenteBX+1][posAgenteBY];
     }
-    if(posAgenteBX < 13){
+    if(posAgenteBX < 12){
         posAgenteBX = posAgenteBX+1;
     }
     ambiente[posAgenteBX-1][posAgenteBY] = guardaObjeto;
@@ -143,18 +144,47 @@ void atuadoresB(){
 ////////////////----------- FUNCAO PRINCIPAL -------------/////////////////
 int main()
 {
+    int testeCount = count;
 	struct timespec start, finish;     //contadores de tempo
 	double elapsed;
 	construirAmbiente();
-	mostrarAmbiente();
+	mostrarAmbiente(count, mochila);
 
     	clock_gettime(CLOCK_MONOTONIC, &start);
 	while(!verificarSucesso()){
         	system("cls");
-        	int acao = funcaoAgenteR1(sensores(LEFT), sensores(RIGHT), sensores(UP), sensores(DOWN));
-        	atuadores(acao);
-        	atuadoresB();
-        mostrarAmbiente();
+        	if(mochila==0){
+                int acao = funcaoAgenteR1(sensores(LEFT), sensores(RIGHT), sensores(UP), sensores(DOWN));
+                atuadores(acao);
+                atuadoresB();
+                if(testeCount >= count){
+                  mochila++;
+                  testeCount--;
+                }
+        	}else{
+        	   /* movimentação para voltar para a lixeira*/
+                    int guardalugar = ambiente[posAgenteX][posAgenteY];
+                    if(posAgenteX > 12){
+                        guardalugar = ambiente[posAgenteX-1][posAgenteY];
+                        posAgenteX = posAgenteX-1;
+                        ambiente[posAgenteX+1][posAgenteY] = guardalugar;
+                    }
+                    if(posAgenteX < 12){
+                        guardalugar = ambiente[posAgenteX+1][posAgenteY];
+                        posAgenteX = posAgenteX+1;
+                        ambiente[posAgenteX-1][posAgenteY] = guardalugar;
+                    }
+                    if(posAgenteY > 1){
+                        guardalugar = ambiente[posAgenteX][posAgenteY-1];
+                        posAgenteY = posAgenteY-1;
+                        ambiente[posAgenteX][posAgenteY+1] = guardalugar;
+                    }
+                    if(posAgenteX == 12 && posAgenteY == 1){
+                        mochila=0;
+                    }
+                ambiente[posAgenteX][posAgenteY] = AGENT;
+                }
+            mostrarAmbiente(count, mochila);
     	}
 	clock_gettime(CLOCK_MONOTONIC, &finish);
 
