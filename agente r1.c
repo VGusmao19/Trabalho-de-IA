@@ -1,18 +1,13 @@
 /******************************************************************************
-
-O objetivo do agente A Ã© capturar todos os . e os * da tela no menor tempo possivel.
-Os * sÃ£o mais atrativos para o agente que os .
-1 - Escreva a funÃ§Ã£o do agente seguindo o modelo reativo simples.
-2 - Escreva a funÃ§Ã£o do agente seguindo o modelo reativo baseado em modelos.
-3 - Escreva a funÃ§Ã£o do agente seguindo o modelo reativo baseado em objetivos.
-4 - Escreva a funÃ§Ã£o do agente seguindo o modelo reativo baseado na utilidade.
-
+O objetivo do agente A é capturar todos os . e os * da tela no menor tempo possivel.
+Os * são mais atrativos para o agente que os .
+1 - Escreva a função do agente seguindo o modelo reativo simples.
+2 - Escreva a função do agente seguindo o modelo reativo baseado em modelos.
+3 - Escreva a função do agente seguindo o modelo reativo baseado em objetivos.
+4 - Escreva a função do agente seguindo o modelo reativo baseado na utilidade.
 Depois compare o tempo que cada abordagem demorou para atingir o objetivo.
-
 O agente capta com seus sensores o conteudo das 4 casas ao seu redor (esquerda, direita, cima, baixo)
 O agente tem como acoes movimentar-se para esquerda (0), direita (1), cima (2), baixo (3)
-
-
 *******************************************************************************/
 
 #include <stdio.h>
@@ -34,11 +29,14 @@ O agente tem como acoes movimentar-se para esquerda (0), direita (1), cima (2), 
 #define AGENT 6
 #define LIXO 7
 #define INCINERADOR 8
-#define AGENT2 9
+#define AGENTB 9
 
 int posAgenteX = 1;
 int posAgenteY = 1;
 int ambiente[SIZE][SIZE];
+
+int posAgenteBX = 1;
+int posAgenteBY = 18;
 
 ////////////////----------- GERENCIAMENTO DO AMBIENTE -------------/////////////////
 void delay(int tempo){
@@ -63,6 +61,8 @@ void construirAmbiente(){
             if(i == 12 && j == 18){ambiente[i][j] = INCINERADOR;}
         }
     }
+    /*criando o agente B*/
+    /*ambiente[1][18] = 9;*/
 }
 
 void mostrarAmbiente(){
@@ -79,7 +79,7 @@ void mostrarAmbiente(){
             else if (ambiente[i][j] == AGENT) printf("A");
             else if (ambiente[i][j] == LIXO) printf("X");
             else if (ambiente[i][j] == INCINERADOR) printf("Y");
-            else if (ambiente[i][j] == AGENT2) printf("B");
+            else if (ambiente[i][j] == AGENTB) printf("B");
         }
         printf("\n");
     }
@@ -114,7 +114,7 @@ int sensores(int lado){
 }
 
 int funcaoAgenteR1(int left, int right, int up, int down){
-	//delay(500);
+	delay(300);
 	if(up == STAR || up == DOT) return UP;
 	if(right == STAR || right == DOT) return RIGHT;
 	if(left == STAR || left == DOT) return LEFT;
@@ -122,22 +122,45 @@ int funcaoAgenteR1(int left, int right, int up, int down){
 	return rand()%4;
 }
 
+/*movimentação do agente B*/
+void atuadoresB(){
+    int guardaObjeto = ambiente[posAgenteBX+1][posAgenteBY];
+    if(ambiente[posAgenteBX+1][posAgenteBY] != 7 && ambiente[posAgenteBX+1][posAgenteBY] != 8){
+        int guardaObjeto = ambiente[posAgenteBX+1][posAgenteBY];
+    }
+    if(posAgenteBX < 13){
+        posAgenteBX = posAgenteBX+1;
+    }
+    ambiente[posAgenteBX-1][posAgenteBY] = guardaObjeto;
+    ambiente[posAgenteBX][posAgenteBY] = AGENTB;
+}
+
+
+
+
+
+
 ////////////////----------- FUNCAO PRINCIPAL -------------/////////////////
 int main()
 {
-    clock_t tempo[2];
+	struct timespec start, finish;     //contadores de tempo
+	double elapsed;
 	construirAmbiente();
 	mostrarAmbiente();
 
-    tempo[0] = clock();
+    	clock_gettime(CLOCK_MONOTONIC, &start);
 	while(!verificarSucesso()){
-        system("cls");
-        int acao = funcaoAgenteR1(sensores(LEFT), sensores(RIGHT), sensores(UP), sensores(DOWN));
-        atuadores(acao);
+        	system("cls");
+        	int acao = funcaoAgenteR1(sensores(LEFT), sensores(RIGHT), sensores(UP), sensores(DOWN));
+        	atuadores(acao);
+        	atuadoresB();
         mostrarAmbiente();
-    }
-	tempo[1] = clock();
+    	}
+	clock_gettime(CLOCK_MONOTONIC, &finish);
 
-	printf("Tempo gasto: %g ms.", ((tempo[1] - tempo[0]) / ((double)CLOCKS_PER_SEC)));
+	elapsed = (finish.tv_sec - start.tv_sec);
+	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+
+	printf("Tempo gasto: %.3f s.", elapsed);
     return 0;
 }
