@@ -165,7 +165,9 @@ int main()
         	if(mochila==0){
                 int acao = funcaoAgenteR1(sensores(LEFT), sensores(RIGHT), sensores(UP), sensores(DOWN));
                 atuadores(acao);
+                //testeCount = mostrarAmbiente(count, mochila, testeCount);
                 atuadoresB();
+                ambiente[12][1] = LIXO;
                 if(inicioLixos > testeCount){
                   mochila++;
                   inicioLixos--;
@@ -185,6 +187,7 @@ int main()
                         posAgenteY=posAgenteY-1;
                       }
                       ambiente[posAgenteX][posAgenteY] = AGENT;
+                      ambiente[12][1] = LIXO;
                 }
     	}
 	clock_gettime(CLOCK_MONOTONIC, &finish);
