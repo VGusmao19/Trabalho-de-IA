@@ -1,10 +1,10 @@
 /******************************************************************************
-O objetivo do agente A Ã© capturar todos os . e os * da tela no menor tempo possivel.
-Os * sÃ£o mais atrativos para o agente que os .
-1 - Escreva a funÃ§Ã£o do agente seguindo o modelo reativo simples.
-2 - Escreva a funÃ§Ã£o do agente seguindo o modelo reativo baseado em modelos.
-3 - Escreva a funÃ§Ã£o do agente seguindo o modelo reativo baseado em objetivos.
-4 - Escreva a funÃ§Ã£o do agente seguindo o modelo reativo baseado na utilidade.
+O objetivo do agente A é capturar todos os . e os * da tela no menor tempo possivel.
+Os * são mais atrativos para o agente que os .
+1 - Escreva a função do agente seguindo o modelo reativo simples.
+2 - Escreva a função do agente seguindo o modelo reativo baseado em modelos.
+3 - Escreva a função do agente seguindo o modelo reativo baseado em objetivos.
+4 - Escreva a função do agente seguindo o modelo reativo baseado na utilidade.
 Depois compare o tempo que cada abordagem demorou para atingir o objetivo.
 O agente capta com seus sensores o conteudo das 4 casas ao seu redor (esquerda, direita, cima, baixo)
 O agente tem como acoes movimentar-se para esquerda (0), direita (1), cima (2), baixo (3)
@@ -85,7 +85,7 @@ int mostrarAmbiente(int count, int mochila, int testeCount){
         }
         printf("\n");
     }
-	printf("Faltam %d objetos. testeCount: %d mochila: %d\n", count,testeCount, mochila);
+	printf("Faltam %d objetos. testeCount: %d mochila: %d\n", count, testeCount, mochila);
 	return count;
 }
 
@@ -125,7 +125,12 @@ int funcaoAgenteR1(int left, int right, int up, int down){
 	return rand()%4;
 }
 
-/*movimentaÃ§Ã£o do agente B*/
+void localizaAgente(){
+  printf("X: %d\n", posAgenteX);
+  printf("Y: %d\n", posAgenteY);
+}
+
+/*movimentação do agente B*/
 void atuadoresB(){
     int guardaObjeto = ambiente[posAgenteBX+1][posAgenteBY];
     if(ambiente[posAgenteBX+1][posAgenteBY] != 7 && ambiente[posAgenteBX+1][posAgenteBY] != 8){
@@ -150,44 +155,37 @@ int main()
 	struct timespec start, finish;     //contadores de tempo
 	double elapsed;
 	construirAmbiente();
-	testeCount = mostrarAmbiente(count, mochila, testeCount);
-
+	int inicioLixos = mostrarAmbiente(count, mochila, testeCount);/*guarda o numero de lixos q tem no começo*/
 
     	clock_gettime(CLOCK_MONOTONIC, &start);
 	while(!verificarSucesso()){
+            testeCount = mostrarAmbiente(count, mochila, testeCount);
+            localizaAgente();
         	system("cls");
         	if(mochila==0){
                 int acao = funcaoAgenteR1(sensores(LEFT), sensores(RIGHT), sensores(UP), sensores(DOWN));
                 atuadores(acao);
                 atuadoresB();
-                if(count < testeCount){
+                if(inicioLixos > testeCount){
                   mochila++;
-                  testeCount = testeCount-1;
+                  inicioLixos--;
                 }
         	}else{
-        	   /* movimentaÃ§Ã£o para voltar para a lixeira*/
-                    int guardalugar = ambiente[posAgenteX][posAgenteY];
-                    if(posAgenteX > 12){
-                        guardalugar = ambiente[posAgenteX-1][posAgenteY];
-                        posAgenteX = posAgenteX-1;
-                        ambiente[posAgenteX+1][posAgenteY] = guardalugar;
-                    }
-                    if(posAgenteX < 12){
-                        guardalugar = ambiente[posAgenteX+1][posAgenteY];
-                        posAgenteX = posAgenteX+1;
-                        ambiente[posAgenteX-1][posAgenteY] = guardalugar;
-                    }
-                    if(posAgenteY > 1){
-                        guardalugar = ambiente[posAgenteX][posAgenteY-1];
-                        posAgenteY = posAgenteY-1;
-                        ambiente[posAgenteX][posAgenteY+1] = guardalugar;
-                    }
-                    if(posAgenteX == 12 && posAgenteY == 1){
+                    ambiente[posAgenteX][posAgenteY] = BLANK;
+                    if(posAgenteX==12 && posAgenteY==1){
                         mochila=0;
-                    }
-                ambiente[posAgenteX][posAgenteY] = AGENT;
+                      }
+                      if(posAgenteX<12){
+                        posAgenteX=posAgenteX+1;
+                      }
+                      if(posAgenteX>12){
+                        posAgenteX=posAgenteX-1;
+                      }
+                      if(posAgenteY>1){
+                        posAgenteY=posAgenteY-1;
+                      }
+                      ambiente[posAgenteX][posAgenteY] = AGENT;
                 }
-            mostrarAmbiente(count, mochila, testeCount);
     	}
 	clock_gettime(CLOCK_MONOTONIC, &finish);
 
