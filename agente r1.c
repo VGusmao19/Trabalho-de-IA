@@ -27,9 +27,11 @@ O agente tem como acoes movimentar-se para esquerda (0), direita (1), cima (2), 
 #define FLOOR 4
 #define WALL 5
 #define AGENT 6
-#define LIXO 7
-#define INCINERADOR 8
+#define LIXO1 7
+#define LIXO2 8
 #define AGENTB 9
+#define INCINERADOR 10
+#define RECICLADORA 11
 
 int posAgenteX = 1;
 int posAgenteY = 1;
@@ -41,102 +43,230 @@ int testeCount = 0;
 int posAgenteBX = 1;
 int posAgenteBY = 18;
 
+int countPonto = 0;
+int countStar = 0;
+
 ////////////////----------- GERENCIAMENTO DO AMBIENTE -------------/////////////////
-void delay(int tempo){
-	for(int i=0; i<tempo; i++);
+void delay(int tempo)
+{
+    for(int i=0; i<tempo; i++);
 }
 
-void construirAmbiente(){
-    for(int i = 0; i<SIZE; i++){
-        for(int j = 0; j<SIZE; j++){
-			if(i == 0 || i == SIZE-1){
-				if(j == 0 || j == SIZE-1) ambiente[i][j] = CORNER;
-				else ambiente[i][j] = FLOOR;
-			}
-			else if(j == 0 || j == SIZE-1) ambiente[i][j] = WALL;
-			else ambiente[i][j] = rand()%3;
-		}
-	}
-	/*criando as lixeiras*/
-	for(int i = 0; i<SIZE; i++){
-        for(int j = 0; j<SIZE; j++){
-            if(i == 12 && j == 1){ambiente[i][j] = LIXO;}
-            if(i == 12 && j == 18){ambiente[i][j] = INCINERADOR;}
+void construirAmbiente()
+{
+    for(int i = 0; i<SIZE; i++)
+    {
+        for(int j = 0; j<SIZE; j++)
+        {
+            if(i == 0 || i == SIZE-1)
+            {
+                if(j == 0 || j == SIZE-1)
+                    ambiente[i][j] = CORNER;
+                else
+                    ambiente[i][j] = FLOOR;
+            }
+            else if(j == 0 || j == SIZE-1)
+                ambiente[i][j] = WALL;
+            else
+                ambiente[i][j] = rand()%3;
         }
     }
-    /*criando o agente B*/
-    /*ambiente[1][18] = 9;*/
+    /*criando as lixeiras*/
+    for(int i = 0; i<SIZE; i++)
+    {
+        for(int j = 0; j<SIZE; j++)
+        {
+            if(i == 12 && j == 1)
+            {
+                ambiente[i][j] = LIXO1;
+            }
+            if(i == 12 && j == 18)
+            {
+                ambiente[i][j] = LIXO2;
+            }
+            if(i == 18 && j == 1)
+            {
+                ambiente[i][j] = INCINERADOR;
+            }
+            if(i == 18 && j == 18)
+            {
+                ambiente[i][j] = RECICLADORA;
+            }
+        }
+    }
 }
 
-int mostrarAmbiente(int count, int mochila, int testeCount){
-	system("cls");
-    for(int i = 0; i<SIZE; i++){
-        for(int j = 0; j<SIZE; j++){
-            if (ambiente[i][j] == BLANK) printf(" ");
-            else if (ambiente[i][j] == DOT) { count++;printf(".");}
-            else if (ambiente[i][j] == STAR) { count++;printf("*");}
-            else if (ambiente[i][j] == CORNER) printf("+");
-            else if (ambiente[i][j] == FLOOR) printf("-");
-            else if (ambiente[i][j] == WALL) printf("|");
-            else if (ambiente[i][j] == AGENT) printf("A");
-            else if (ambiente[i][j] == LIXO) printf("X");
-            else if (ambiente[i][j] == INCINERADOR) printf("Y");
-            else if (ambiente[i][j] == AGENTB) printf("B");
+int mostrarAmbiente(int countPonto, int countStar, int mochila, int testeCount)
+{
+    system("cls");
+    for(int i = 0; i<SIZE; i++)
+    {
+        for(int j = 0; j<SIZE; j++)
+        {
+            if (ambiente[i][j] == BLANK)
+                printf(" ");
+            else if (ambiente[i][j] == DOT)
+            {
+                countPonto++;
+                printf(".");
+            }
+            else if (ambiente[i][j] == STAR)
+            {
+                countStar++;
+                printf("*");
+            }
+            else if (ambiente[i][j] == CORNER)
+                printf("+");
+            else if (ambiente[i][j] == FLOOR)
+                printf("-");
+            else if (ambiente[i][j] == WALL)
+                printf("|");
+            else if (ambiente[i][j] == AGENT)
+                printf("A");
+            else if (ambiente[i][j] == LIXO1)
+                printf("X");
+            else if (ambiente[i][j] == LIXO2)
+                printf("Y");
+            else if (ambiente[i][j] == AGENTB)
+                printf("B");
+            else if (ambiente[i][j] == INCINERADOR)
+                printf("I");
+            else if (ambiente[i][j] == RECICLADORA)
+                printf("R");
         }
         printf("\n");
     }
-	printf("Faltam %d objetos. testeCount: %d mochila: %d\n", count, testeCount, mochila);
-	return count;
+    printf("Faltam %d estrelas e Faltam %d pontos. testeCount: %d mochila: %d\n", countStar, countPonto, testeCount, mochila);
+    return countStar+countPonto;
 }
 
-bool verificarSucesso(){
-    for(int i = 0; i<SIZE; i++){
-        for(int j = 0; j<SIZE; j++){
-            if (ambiente[i][j] == DOT || ambiente[i][j] == STAR) return false;
+bool verificarSucesso()
+{
+    for(int i = 0; i<SIZE; i++)
+    {
+        for(int j = 0; j<SIZE; j++)
+        {
+            if (ambiente[i][j] == DOT || ambiente[i][j] == STAR)
+                return false;
         }
     }
     return true;
 }
 
 ////////////////----------- AGENTE REATIVO SIMPLES -------------/////////////////
-void atuadores(int acao){
+void atuadores(int acao)
+{
     ambiente[posAgenteX][posAgenteY] = BLANK;
-        if (acao == LEFT && ambiente[posAgenteX][posAgenteY-1] < CORNER) posAgenteY -= 1;
-        else if (acao == RIGHT && ambiente[posAgenteX][posAgenteY+1] < CORNER) posAgenteY += 1;
-        else if (acao == UP && ambiente[posAgenteX-1][posAgenteY] < CORNER) posAgenteX -= 1;
-        else if (acao == DOWN && ambiente[posAgenteX+1][posAgenteY] < CORNER) posAgenteX += 1;
+    if (acao == LEFT && ambiente[posAgenteX][posAgenteY-1] < CORNER)
+        posAgenteY -= 1;
+    else if (acao == RIGHT && ambiente[posAgenteX][posAgenteY+1] < CORNER)
+        posAgenteY += 1;
+    else if (acao == UP && ambiente[posAgenteX-1][posAgenteY] < CORNER)
+        posAgenteX -= 1;
+    else if (acao == DOWN && ambiente[posAgenteX+1][posAgenteY] < CORNER)
+        posAgenteX += 1;
     ambiente[posAgenteX][posAgenteY] = AGENT;
 }
 
-int sensores(int lado){
-        if (lado == LEFT) return ambiente[posAgenteX][posAgenteY-1];
-        if (lado == RIGHT)return ambiente[posAgenteX][posAgenteY+1];
-        if (lado == UP)return ambiente[posAgenteX-1][posAgenteY];
-        if (lado == DOWN)return ambiente[posAgenteX+1][posAgenteY];
+int sensores(int lado)
+{
+    if (lado == LEFT)
+        return ambiente[posAgenteX][posAgenteY-1];
+    if (lado == RIGHT)
+        return ambiente[posAgenteX][posAgenteY+1];
+    if (lado == UP)
+        return ambiente[posAgenteX-1][posAgenteY];
+    if (lado == DOWN)
+        return ambiente[posAgenteX+1][posAgenteY];
     return 0;
 }
 
-int funcaoAgenteR1(int left, int right, int up, int down){
-	//delay(100);
-	if(up == STAR || up == DOT){return UP;}
-	if(right == STAR || right == DOT) {return RIGHT;}
-	if(left == STAR || left == DOT) {return LEFT;}
-	if(down == STAR || down == DOT) {return DOWN;}
-	return rand()%4;
+int funcaoAgenteR1(int left, int right, int up, int down)
+{
+    //delay(100);
+    if(up == STAR || up == DOT)
+    {
+        return UP;
+    }
+    if(right == STAR || right == DOT)
+    {
+        return RIGHT;
+    }
+    if(left == STAR || left == DOT)
+    {
+        return LEFT;
+    }
+    if(down == STAR || down == DOT)
+    {
+        return DOWN;
+    }
+    return rand()%4;
 }
 
-void localizaAgente(){
-  printf("X: %d\n", posAgenteX);
-  printf("Y: %d\n", posAgenteY);
+void localizaAgente()
+{
+    printf("X: %d\n", posAgenteX);
+    printf("Y: %d\n", posAgenteY);
 }
+
+void voltarLixeiraX()
+{
+ambiente[posAgenteX][posAgenteY] = BLANK;
+    if(posAgenteX==12 && posAgenteY==1)
+    {
+        mochila=0;
+    }
+    if(posAgenteX<12)
+    {
+        posAgenteX=posAgenteX+1;
+    }
+    if(posAgenteX>12)
+    {
+        posAgenteX=posAgenteX-1;
+    }
+    if(posAgenteY>1)
+    {
+        posAgenteY=posAgenteY-1;
+    }
+    ambiente[posAgenteX][posAgenteY] = AGENT;
+    ambiente[12][1] = LIXO1;
+}
+
+
+void voltarLixeiraY()
+{
+    ambiente[posAgenteX][posAgenteY] = BLANK;
+        if(posAgenteX==12 && posAgenteY==18)
+        {
+            mochila=0;
+        }
+        if(posAgenteX<12)
+        {
+            posAgenteX=posAgenteX+1;
+        }
+        if(posAgenteX>12)
+        {
+            posAgenteX=posAgenteX-1;
+        }
+        if(posAgenteY<18)
+        {
+            posAgenteY=posAgenteY+1;
+        }
+        ambiente[posAgenteX][posAgenteY] = AGENT;
+        ambiente[12][18] = INCINERADOR;
+}
+
 
 /*movimentação do agente B*/
-void atuadoresB(){
+void atuadoresB()
+{
     int guardaObjeto = ambiente[posAgenteBX+1][posAgenteBY];
-    if(ambiente[posAgenteBX+1][posAgenteBY] != 7 && ambiente[posAgenteBX+1][posAgenteBY] != 8){
+    if(ambiente[posAgenteBX+1][posAgenteBY] != 7 && ambiente[posAgenteBX+1][posAgenteBY] != 8)
+    {
         int guardaObjeto = ambiente[posAgenteBX+1][posAgenteBY];
     }
-    if(posAgenteBX < 12){
+    if(posAgenteBX < 12)
+    {
         posAgenteBX = posAgenteBX+1;
     }
     ambiente[posAgenteBX-1][posAgenteBY] = guardaObjeto;
@@ -152,49 +282,44 @@ void atuadoresB(){
 int main()
 {
 
-	struct timespec start, finish;     //contadores de tempo
-	double elapsed;
-	construirAmbiente();
-	int inicioLixos = mostrarAmbiente(count, mochila, testeCount);/*guarda o numero de lixos q tem no começo*/
+    struct timespec start, finish;     //contadores de tempo
+    double elapsed;
+    construirAmbiente();
+    int inicioLixos = mostrarAmbiente(countPonto, countStar, mochila, testeCount);/*guarda o numero de lixos q tem no começo*/
 
-    	clock_gettime(CLOCK_MONOTONIC, &start);
-	while(!verificarSucesso()){
-            testeCount = mostrarAmbiente(count, mochila, testeCount);
-            localizaAgente();
-        	system("cls");
-        	if(mochila==0){
-                int acao = funcaoAgenteR1(sensores(LEFT), sensores(RIGHT), sensores(UP), sensores(DOWN));
-                atuadores(acao);
-                //testeCount = mostrarAmbiente(count, mochila, testeCount);
-                atuadoresB();
-                ambiente[12][1] = LIXO;
-                if(inicioLixos > testeCount){
-                  mochila++;
-                  inicioLixos--;
-                }
-        	}else{
-                    ambiente[posAgenteX][posAgenteY] = BLANK;
-                    if(posAgenteX==12 && posAgenteY==1){
-                        mochila=0;
-                      }
-                      if(posAgenteX<12){
-                        posAgenteX=posAgenteX+1;
-                      }
-                      if(posAgenteX>12){
-                        posAgenteX=posAgenteX-1;
-                      }
-                      if(posAgenteY>1){
-                        posAgenteY=posAgenteY-1;
-                      }
-                      ambiente[posAgenteX][posAgenteY] = AGENT;
-                      ambiente[12][1] = LIXO;
-                }
-    	}
-	clock_gettime(CLOCK_MONOTONIC, &finish);
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    while(!verificarSucesso())
+    {
+        delay(99999);
+        testeCount = mostrarAmbiente(countPonto, countStar, mochila, testeCount);
+        localizaAgente();
+        system("cls");
+        if(mochila==0)
+        {
+            int acao = funcaoAgenteR1(sensores(LEFT), sensores(RIGHT), sensores(UP), sensores(DOWN));
+            atuadores(acao);
+            testeCount = mostrarAmbiente(countPonto, countStar, mochila, testeCount);//tem que ficar aqui pra não comer mais de um lixo antes de ir pra lixeira!
+            atuadoresB();
+            ambiente[12][1] = LIXO1;
+            if(inicioLixos > testeCount)
+            {
+                mochila++;
+                inicioLixos--;
+            }
+        }
+        else
+        {
+            if(posAgenteY/2<20)
+                voltarLixeiraX();
+            else
+                voltarLixeiraY();
+        }
+    }
+    clock_gettime(CLOCK_MONOTONIC, &finish);
 
-	elapsed = (finish.tv_sec - start.tv_sec);
-	elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+    elapsed = (finish.tv_sec - start.tv_sec);
+    elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 
-	printf("Tempo gasto: %.3f s.", elapsed);
+    printf("Tempo gasto: %.3f s.", elapsed);
     return 0;
 }
